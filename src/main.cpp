@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <map>
 #include <functional>
 #include <unistd.h>
@@ -98,25 +99,27 @@ string find_executable(const string& command) {
 }
 
 
-vector<string> split(string s, char delimiter = ' ')
+vector<string> split(const string& s, char delimiter = ' ')
 {
-  string input = s;
-  vector<string> string_args;
-  int pos = 0;
-  while (pos != string::npos)
-  {
-    pos = input.find(delimiter);
-    auto token = string(input.substr(0, pos));
-    token.erase(remove_if(token.begin(), token.end(), [delimiter](char c){return c==delimiter;}), token.end());
-    input = input.substr(pos+1);
-    if (token.empty()) { continue; }
-    string_args.emplace_back(token);
+  // Stable, simple splitter that skips empty tokens (consecutive delimiters are ignored)
+  vector<string> result;
+  string token;
+  for (char c : s) {
+    if (c == delimiter) {
+      if (!token.empty()) {
+        result.emplace_back(move(token));
+        token.clear();
+      }
+    } else {
+      token.push_back(c);
+    }
   }
-  return string_args;
+  if (!token.empty()) result.emplace_back(move(token));
+  return result;
 }
 
 int main(int argc, char* argv[]) {
-  // Flush after every cout / std:cerr
+  // Flush after every cout / std:cerrr
   cout << unitbuf;
   cerr << unitbuf;
 
